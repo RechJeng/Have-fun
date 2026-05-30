@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>豪華抽抽樂</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft JhengHei",sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:20px;color:#333}
+.container{max-width:1000px;margin:auto}
+.card{background:white;border-radius:20px;padding:25px;margin-bottom:20px;box-shadow:0 10px 25px rgba(0,0,0,.15)}
+h1{text-align:center;color:white;margin-bottom:20px;font-size:42px}
+.draw-area{text-align:center}
+.result{height:120px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:bold;border:3px dashed #ddd;border-radius:15px;margin:20px 0}
+button{border:none;border-radius:12px;cursor:pointer;transition:.2s}
+button:hover{transform:scale(1.05)}
+.draw-btn{background:#ff5722;color:white;font-size:24px;padding:15px 40px}
+.reset-btn{background:#607d8b;color:white;padding:10px 20px}
+.prize-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.prize-item{background:#f6f6f6;padding:15px;border-radius:10px}
+.prize-item input{width:100%;margin-top:5px;padding:8px}
+.record-list{max-height:300px;overflow:auto}
+.record{padding:10px;border-bottom:1px solid #eee}
+.firework{position:fixed;font-size:40px;animation:boom 1s ease-out forwards;pointer-events:none}
+@keyframes boom{from{transform:translateY(0) scale(.5);opacity:1}to{transform:translateY(-200px) scale(2);opacity:0}}
+.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{flex:1;min-width:150px;background:#f5f5f5;padding:15px;text-align:center;border-radius:10px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🎁 豪華抽抽樂 🎁</h1>
+<div class="card draw-area">
+<h2>立即抽獎</h2>
+<div class="result" id="result">點擊開始抽獎</div>
+<button class="draw-btn" onclick="drawPrize()">🎲 開始抽獎</button>
+</div>
+<div class="card"><h2>獎項設定</h2><div class="prize-grid">
+<div class="prize-item">獎項<input value="🥇 頭獎 1000元" id="p1">機率(%)<input value="5" id="w1" type="number"></div>
+<div class="prize-item">獎項<input value="🥈 二獎 500元" id="p2">機率(%)<input value="10" id="w2" type="number"></div>
+<div class="prize-item">獎項<input value="🥉 三獎 200元" id="p3">機率(%)<input value="20" id="w3" type="number"></div>
+<div class="prize-item">獎項<input value="🎉 安慰獎 50元" id="p4">機率(%)<input value="25" id="w4" type="number"></div>
+<div class="prize-item">獎項<input value="🍬 糖果一顆" id="p5">機率(%)<input value="20" id="w5" type="number"></div>
+<div class="prize-item">獎項<input value="😭 銘謝惠顧" id="p6">機率(%)<input value="20" id="w6" type="number"></div>
+</div></div>
+<div class="card"><h2>統計資料</h2><div class="stats"><div class="stat"><h3 id="totalDraw">0</h3><p>抽獎次數</p></div><div class="stat"><h3 id="firstPrize">0</h3><p>頭獎次數</p></div></div></div>
+<div class="card"><h2>抽獎紀錄</h2><br><button class="reset-btn" onclick="clearRecords()">清除紀錄</button><br><br><div class="record-list" id="records"></div></div>
+</div>
+<script>
+let records=JSON.parse(localStorage.getItem("drawRecords")||"[]");
+function saveRecords(){localStorage.setItem("drawRecords",JSON.stringify(records));}
+function getPrizes(){const p=[];for(let i=1;i<=6;i++)p.push({name:document.getElementById("p"+i).value,weight:Number(document.getElementById("w"+i).value)});return p;}
+function weightedRandom(prizes){const total=prizes.reduce((a,b)=>a+b.weight,0);let r=Math.random()*total;for(const p of prizes){if(r<p.weight)return p.name;r-=p.weight;}}
+function drawPrize(){const result=document.getElementById("result");const prizes=getPrizes();let c=0;const a=setInterval(()=>{result.textContent=prizes[Math.floor(Math.random()*prizes.length)].name;c++;if(c>20){clearInterval(a);const f=weightedRandom(prizes);result.textContent=f;addRecord(f);if(f.includes("頭獎"))launchFireworks();}},100);}
+function addRecord(prize){records.unshift({prize,time:new Date().toLocaleString()});saveRecords();renderRecords();}
+function renderRecords(){const box=document.getElementById("records");box.innerHTML="";let first=0;records.forEach(i=>{if(i.prize.includes("頭獎"))first++;box.innerHTML+=`<div class="record">${i.time} ｜ ${i.prize}</div>`});totalDraw.textContent=records.length;firstPrize.textContent=first;}
+function clearRecords(){if(confirm("確定清除全部紀錄？")){records=[];saveRecords();renderRecords();}}
+function launchFireworks(){for(let i=0;i<30;i++){const d=document.createElement("div");d.className="firework";d.innerHTML=["🎉","✨","🎊","⭐"][Math.floor(Math.random()*4)];d.style.left=Math.random()*100+"vw";d.style.top="80vh";document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}}
+renderRecords();
+</script>
+</body></html>
